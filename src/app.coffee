@@ -80,7 +80,7 @@ class PTYClient
   constructor: (@conn,@id) ->
     @conn.send("spawn",@id)
 
-    @input = conn.listen(@id).doAction ((data) -> console.log(data))
+    @input = conn.listen(@id) # .doAction ((data) -> console.log(data))
 
   write: (data) ->
     @conn.send(@id,data)
@@ -111,6 +111,8 @@ main = ->
     el.innerText = if up then "connected" else "disconnected"
 
   openTerm(c,"pty1")
+  openTerm(c,"pty2")
+  openTerm(c,"pty3")
 
   return
   pings = c.listen("ping")
