@@ -52,10 +52,21 @@ buffer = (stream) ->
 class Connection
   constructor: () ->
     @so = Socket.connect()
+    connectEvents = Bacon.fromEventTarget(@so,"connect").map(true)
+    disconnectEvents = Bacon.fromEventTarget(@so,"disconnect").map(false)
+    @status = connectEvents.merge(disconnectEvents).toProperty().startWith(false)
+    return
+    @bus = new Bacon.Bus()
+    @bus.onValue ([type,args...]) =>
+      @so.emit type, args...
+    @writeStream = buffer()
 
   # returns a bacon event stream
   listen: (event) ->
     Bacon.fromEventTarget(@so,event)
+
+  write: (type,args...) ->
+    @bus.push [type,args...]
 
 class HeartBeat
   constructor: (@id,@conn) ->
@@ -63,8 +74,17 @@ class HeartBeat
   listen: ->
     conn.listen("ping")
 
+class PTYClient
+  constructor: (@id,conn) ->
+
+
+
+
 main = ->
   c = new Connection()
+  c.status.onValue (up) =>
+    el = document.getElementById("status")
+    el.innerText = if up then "connected" else "disconnected"
   pings = c.listen("ping")
   bpings = buffer(pings)
   setTimeout (->
