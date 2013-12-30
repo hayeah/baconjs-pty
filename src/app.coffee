@@ -51,40 +51,68 @@ buffer = (stream) ->
 
 class Connection
   constructor: () ->
+    @bus = new Bacon.Bus()
+    @inputStream = buffer(@bus) # waitable and resumable bus
+
     @so = Socket.connect()
     connectEvents = Bacon.fromEventTarget(@so,"connect").map(true)
     disconnectEvents = Bacon.fromEventTarget(@so,"disconnect").map(false)
     @status = connectEvents.merge(disconnectEvents).toProperty().startWith(false)
-    return
-    @bus = new Bacon.Bus()
-    @bus.onValue ([type,args...]) =>
+    @status.onValue (up) =>
+      if up
+        @inputStream.resume()
+      else
+        @inputStream.pause()
+
+    # only emit message if buffer is in connected state
+    @inputStream.onValue ([type,args...]) =>
       @so.emit type, args...
-    @writeStream = buffer()
 
   # returns a bacon event stream
   listen: (event) ->
     Bacon.fromEventTarget(@so,event)
 
-  write: (type,args...) ->
+  send: (type,args...) ->
     @bus.push [type,args...]
 
-class HeartBeat
-  constructor: (@id,@conn) ->
-
-  listen: ->
-    conn.listen("ping")
 
 class PTYClient
-  constructor: (@id,conn) ->
+  constructor: (@conn,@id) ->
+    @conn.send("spawn",@id)
+
+    @input = conn.listen(@id).doAction ((data) -> console.log(data))
+
+  write: (data) ->
+    @conn.send(@id,data)
 
 
+openTerm = (c,id) ->
+  pty = new PTYClient(c,id)
+  term = new Terminal({
+    useStyle: true
+    cols: 80
+    rows: 30
+  })
+  div = document.createElement("div")
+  wrapper = document.getElementById("terminals")
+  wrapper.appendChild(div)
+  term.open(div)
 
+  term.on "data", (data) ->
+    pty.write(data)
+
+  pty.input.onValue (data) =>
+    term.write(data)
 
 main = ->
   c = new Connection()
   c.status.onValue (up) =>
     el = document.getElementById("status")
     el.innerText = if up then "connected" else "disconnected"
+
+  openTerm(c,"pty1")
+
+  return
   pings = c.listen("ping")
   bpings = buffer(pings)
   setTimeout (->
