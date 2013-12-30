@@ -1,0 +1,3 @@
+bower_components/socket.io-client/dist/socket.io.min.js
+bower_components/term.js/src/term.js
+bower_components/bacon/dist/Bacon.js
