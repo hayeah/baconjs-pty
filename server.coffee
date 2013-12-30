@@ -44,7 +44,7 @@ class PingServer
     @timer = setInterval((=>
         i++
         @so.emit("ping",i)
-      ),1000
+      ),500
     )
     @so.on "pong", (i) ->
       console.log "pong", i
