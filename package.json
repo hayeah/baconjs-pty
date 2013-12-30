@@ -10,6 +10,7 @@
   "license": "BSD-2-Clause",
   "dependencies": {
     "pty.js": "~0.2.3",
-    "socket.io": "~0.9.16"
+    "socket.io": "~0.9.16",
+    "express": "~3.4.7"
   }
 }
