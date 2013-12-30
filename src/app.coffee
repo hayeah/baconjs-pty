@@ -1,4 +1,4 @@
-1 + 1
+noop = (->)
 
 Socket = io
 
@@ -12,10 +12,16 @@ class BaconBuffer
 
     @sink = null
     @downstream = Bacon.fromBinder (sink) =>
+      # seems to happen once for multiple onValue subscriptions
+      # console.log "got sink"
       @sink = sink # uh... is this the same for all subscribers?
+      return noop
 
-    @downstream.resume = @resume.bind(@)
-    @downstream.pause = @pause.bind(@)
+    @downstream.resume = =>
+      @resume()
+
+    @downstream.pause = =>
+      @pause()
 
     @upstream.subscribe (event) =>
       @yield(event)
@@ -27,14 +33,13 @@ class BaconBuffer
     @isPaused = false
     if buffer.length > 0
       for e in @buffer
-        console.log "drain buffer", e
         @sink(e)
 
       @buffer = []
 
   yield: (e) ->
     if @isPaused
-      console.log "buffer", @buffer.length, e
+      # console.log "buffer", @buffer.length, e
       @buffer.push e
     else
       # when is @sink bound? Is it when subscribed to or immediately after fromBinder?
@@ -64,13 +69,13 @@ main = ->
   bpings = buffer(pings)
   setTimeout (->
     # using "take" causes it to infinte recurse somewhere...
-    bpings.onValue (i) =>
+    bpings.take(10).onValue (i) =>
       console.log "s1", i
     bpings.resume()
 
   ), 3000
 
-  # pings.onValue (i) =>
-  #   console.log "s2", i
+  bpings.take(20).onValue (i) =>
+    console.log "s2", i
 
 window.onload = main
