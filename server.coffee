@@ -54,7 +54,7 @@ class PingServer
 
 io.sockets.on 'connection', (so) ->
   console.log "new connection"
-  new PingServer(so)
+  # new PingServer(so)
   new PTYServer(so)
 
 port = 4000

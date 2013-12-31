@@ -104,15 +104,24 @@ openTerm = (c,id) ->
   pty.input.onValue (data) =>
     term.write(data)
 
+# TerminalUI = require './ui/terminal'
+TerminalWindowsUI = require './ui/terminal-windows'
+
+openTerms = (c) ->
+  rootNode = document.getElementById("terminals")
+  React.renderComponent TerminalWindowsUI({
+    connection: c
+  }), rootNode
+
 main = ->
   c = new Connection()
-  c.status.onValue (up) =>
-    el = document.getElementById("status")
-    el.innerText = if up then "connected" else "disconnected"
 
-  openTerm(c,"pty1")
-  openTerm(c,"pty2")
-  openTerm(c,"pty3")
+  # c.status.onValue (up) =>
+  #   el = document.getElementById("status")
+  #   el.innerText = if up then "connected" else "disconnected"
+
+  window.terms = terms = openTerms(c)
+  terms.openNew("bash")
 
   return
   pings = c.listen("ping")

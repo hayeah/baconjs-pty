@@ -18,6 +18,8 @@
     "term.js": "https://github.com/chjj/term.js.git#~0.0.3",
     "bacon": "~0.7.0",
     "jquery": "~2.0.3",
-    "underscore": "~1.5.2"
+    "underscore": "~1.5.2",
+    "react": "~0.8.0",
+    "bootstrap": "~3.0.3"
   }
 }

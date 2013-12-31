@@ -11,6 +11,8 @@
   "dependencies": {
     "pty.js": "~0.2.3",
     "socket.io": "~0.9.16",
-    "express": "~3.4.7"
+    "express": "~3.4.7",
+    "coffeeify": "~0.5.2",
+    "browserify": "~3.18.0"
   }
 }

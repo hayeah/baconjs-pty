@@ -20,7 +20,6 @@ Tabs = React.createClass({
   getInitialState: ->
     {
       selected: 0,
-      # tabs: @props.children
     }
   # getDefaultProps: ->
   # componentWillMount: ->
@@ -34,19 +33,15 @@ Tabs = React.createClass({
   selectTab: (i) ->
     @setState selected: i
 
-  # addTab: (ui) ->
-  #   @props.children
-
   render: ->
     navtabs = for tab, i in @props.children
       active = @state.selected == i
       tab.props.active = active
 
-      key = title = tab.props.title
-      tab.props.key = key
+      title = tab.props.title
+      key = i
       licx = cx({active: active == true})
-      navtab = li({className: licx, key: key, onClick: @selectTab.bind(@,i)}
-                  a(null,title))
+      navtab = li({className: licx, key: i, onClick: @selectTab.bind(@,i)},a(null,title))
 
     div(null,
       ul({className: "nav nav-tabs"},navtabs)
