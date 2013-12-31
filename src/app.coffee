@@ -76,41 +76,13 @@ class Connection
     @bus.push [type,args...]
 
 
-class PTYClient
-  constructor: (@conn,@id) ->
-    @conn.send("spawn",@id)
-
-    @input = conn.listen(@id) # .doAction ((data) -> console.log(data))
-
-  write: (data) ->
-    @conn.send(@id,data)
-
-
-openTerm = (c,id) ->
-  pty = new PTYClient(c,id)
-  term = new Terminal({
-    useStyle: true
-    cols: 80
-    rows: 30
-  })
-  div = document.createElement("div")
-  wrapper = document.getElementById("terminals")
-  wrapper.appendChild(div)
-  term.open(div)
-
-  term.on "data", (data) ->
-    pty.write(data)
-
-  pty.input.onValue (data) =>
-    term.write(data)
-
 # TerminalUI = require './ui/terminal'
 TerminalWindowsUI = require './ui/terminal-windows'
 
 openTerms = (c) ->
   rootNode = document.getElementById("terminals")
   React.renderComponent TerminalWindowsUI({
-    connection: c
+    conn: c
   }), rootNode
 
 main = ->
@@ -121,7 +93,7 @@ main = ->
   #   el.innerText = if up then "connected" else "disconnected"
 
   window.terms = terms = openTerms(c)
-  terms.openNew("bash")
+  terms.open("bash")
 
   return
   pings = c.listen("ping")

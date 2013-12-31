@@ -33,7 +33,7 @@ TerminalWindowsUI = React.createClass({
   # componentDidUpdate: (prevProps,prevState,rootNode) ->
   # componentWillUnmount: ->
 
-  openNew: (title) ->
+  open: (title) ->
     {IDCounter,terms} = @state
     IDCounter += 1
 
@@ -48,13 +48,13 @@ TerminalWindowsUI = React.createClass({
 
   render: ->
     tabs = for {id,title} in @state.terms
-      Tab({key: id, title: title}, TerminalUI(key: id))
+      Tab({key: id, title: title}, TerminalUI(key: id, conn: @props.conn))
 
     navtabs = NavTabs(null,tabs)
 
     div({}
       navtabs,
-      button({className: "btn btn-default", onClick: @openNew.bind(@,"bash")},"New"))
+      button({className: "btn btn-default", onClick: @open.bind(@,"bash")},"New"))
 })
 
 module.exports = TerminalWindowsUI
