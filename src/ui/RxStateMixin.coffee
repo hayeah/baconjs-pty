@@ -10,10 +10,11 @@ RxStateMixin = {
   _bindRxState: ->
     @_RxDiposals =
       for key, rxProp of @getRxState()
-        rxProp.onValue (val) =>
-          change = {}
-          change[key] = val
-          @setState change
+        do (key) =>
+          rxProp.onValue (val) =>
+            change = {}
+            change[key] = val
+            @setState change
 
   _unbindRxState: ->
     for dispose in @_RxDiposals
