@@ -88,12 +88,8 @@ openTerms = (c) ->
 main = ->
   c = new Connection()
 
-  # c.status.onValue (up) =>
-  #   el = document.getElementById("status")
-  #   el.innerText = if up then "connected" else "disconnected"
-
   window.terms = terms = openTerms(c)
-  terms.open("bash")
+  # terms.open("bash")
 
   return
   pings = c.listen("ping")

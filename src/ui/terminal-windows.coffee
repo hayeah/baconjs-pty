@@ -15,7 +15,11 @@ TerminalUI = require("./terminal")
 </NavTabs>
 ###
 
+RxStateMixin = require("./RxStateMixin")
+
 TerminalWindowsUI = React.createClass({
+  mixins: [RxStateMixin]
+
   getInitialState: ->
     {
       # {title: String, id: Integer}
@@ -23,15 +27,24 @@ TerminalWindowsUI = React.createClass({
 
       # unique id for each spawned terminal
       IDCounter: 0
+
+      isConnected: false
     }
   # getDefaultProps: ->
   # componentWillMount: ->
+
   # componentDidMount: (rootNode) ->
   # componentWillReceiveProps: (nextProps) ->
   # shouldComponentUpdate: (nextProps,nextState) ->
   # componentWillUpdate: (nextProps,nextState) ->
   # componentDidUpdate: (prevProps,prevState,rootNode) ->
   # componentWillUnmount: ->
+
+
+  # @return {{isConnected: RxProp.<boolean>}}
+  getRxState: ->
+    {isConnected: @props.conn.status}
+
 
   open: (title) ->
     {IDCounter,terms} = @state
@@ -52,7 +65,8 @@ TerminalWindowsUI = React.createClass({
 
     navtabs = NavTabs(null,tabs)
 
-    div({}
+    div({},
+      div({},"connection status: #{@state.isConnected}")
       navtabs,
       button({className: "btn btn-default", onClick: @open.bind(@,"bash")},"New"))
 })
