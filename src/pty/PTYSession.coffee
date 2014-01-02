@@ -1,3 +1,4 @@
+RESPAWN_LIMIT = 3
 # A PTY session running on a pipe. It respawns itself on exit.
 class PTYSession
   # @param {PTYPipe} pipe
@@ -8,10 +9,16 @@ class PTYSession
     @pipe.dataReader.onValue (data) =>
       @terminal.write(data)
 
-    @pipe.rx.isRunning.changes().onValue (isRunning) =>
-      console.log "isRunning", isRunning
-      if isRunning == false
-        @respawn()
+    respawnEvents = @pipe.rx.isRunning.
+      changes().
+      skipDuplicates().
+      filter((isRunning) -> isRunning == false)
+
+    respawnEvents.take(RESPAWN_LIMIT).onValue =>
+      @respawn()
+
+    respawnEvents.skip(RESPAWN_LIMIT).take(1).onEnd =>
+      @terminal.write("\r\nProgram restarted #{RESPAWN_LIMIT} times. Will not restart again.\r\n")
 
     @terminal.on "data", (data) =>
       @pipe.write(data)
