@@ -21,22 +21,32 @@ class PTYInstance
     })
 
     pty.on 'data', (data) =>
-      @so.emit(@id, data)
+      @write(data)
+
+    pty.on "exit", =>
+      @ctrlWrite("exit")
 
     @so.on @id, (data) ->
       pty.write(data)
+
+  write: (data) ->
+    @so.emit(@id, data)
+
+  ctrlWrite: (args...) ->
+    @so.emit(@id,args)
 
   close: ->
 
 class PTYServer
   constructor: (@so) ->
     @ptys = {}
-    @so.on "spawn", (id) =>
+    @so.on "spawn", (id,ack) =>
       if oldPty = @ptys[id]
         console.log "close", id
         oldPty.close()
       console.log "spawn", id
       @ptys[id] = new PTYInstance(id,@so)
+      ack(id)
 
 class PingServer
   constructor: (@so) ->

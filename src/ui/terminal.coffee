@@ -1,15 +1,9 @@
 {div,span} = React.DOM
 cx = React.addons.classSet
 
-class PTYPipe
-  constructor: (@conn,@id) ->
-    @conn.send("spawn",id)
 
-    @readable = conn.listen(@id) # .doAction ((data) -> console.log(data))
-
-  write: (data) ->
-    @conn.send(@id,data)
-
+PTYPipe = require("../pty/PTYPipe")
+PTYSession = require("../pty/PTYSession")
 
 TerminalUI = React.createClass({
   getInitialState: ->
@@ -32,14 +26,9 @@ TerminalUI = React.createClass({
     t.open(el)
 
     pipe = new PTYPipe(@props.conn,@props.key)
+    ptySession = new PTYSession(pipe,@state.term)
 
-    pipe.readable.onValue (data) =>
-      t.write(data)
-
-    t.on "data", (data) =>
-      pipe.write(data)
-
-    @setState pipe: pipe
+    @setState session: ptySession
 
   # componentWillReceiveProps: (nextProps) ->
   # shouldComponentUpdate: (nextProps,nextState) ->

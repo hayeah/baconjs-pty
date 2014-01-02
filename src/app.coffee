@@ -65,15 +65,15 @@ class Connection
         @inputStream.pause()
 
     # only emit message if buffer is in connected state
-    @inputStream.onValue ([type,args...]) =>
-      @so.emit type, args...
+    @inputStream.onValue (args) =>
+      @so.emit args...
 
   # returns a bacon event stream
   listen: (event) ->
     Bacon.fromEventTarget(@so,event)
 
-  send: (type,args...) ->
-    @bus.push [type,args...]
+  send: (args...) ->
+    @bus.push args
 
 
 # TerminalUI = require './ui/terminal'
@@ -89,7 +89,7 @@ main = ->
   c = new Connection()
 
   window.terms = terms = openTerms(c)
-  # terms.open("bash")
+  terms.open("bash")
 
   return
   pings = c.listen("ping")
