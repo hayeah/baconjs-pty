@@ -15,7 +15,7 @@
   "dependencies": {
     "bacon.js": "https://github.com/baconjs/bacon.js",
     "socket.io-client": "~0.9.16",
-    "term.js": "https://github.com/chjj/term.js.git#~0.0.3",
+    "term.js": "https://github.com/risacher/term.js.git#resize-reset",
     "bacon": "~0.7.0",
     "jquery": "~2.0.3",
     "underscore": "~1.5.2",
