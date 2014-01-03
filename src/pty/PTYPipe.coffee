@@ -9,7 +9,10 @@
 RxObject = require("../RxObject")
 
 class PTYPipe extends RxObject
-  constructor: (@conn,@id) ->
+  ###*
+  @param {PTYServer.Program} program
+  ###
+  constructor: (@conn,@id,@program) ->
     @setRx {
       # is the pty program running?
       isRunning: false
@@ -35,7 +38,7 @@ class PTYPipe extends RxObject
   spawn: (size,cb) ->
     # use the current ui terminal size
     # @uiPTYSize.take(1).onValue (size) =>
-    @conn.send "spawn", @id, size, @options, =>
+    @conn.send "spawn", @id, size, @program, =>
       @setRx isRunning: true
       cb(size) if cb
 

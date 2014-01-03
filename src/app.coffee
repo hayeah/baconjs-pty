@@ -89,7 +89,7 @@ main = ->
   c = new Connection()
 
   window.terms = terms = openTerms(c)
-  terms.open("bash")
+  terms.open("bash",{command: "bash"})
 
   return
   pings = c.listen("ping")

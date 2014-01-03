@@ -5,6 +5,12 @@ cx = React.addons.classSet
 PTYPipe = require("../pty/PTYPipe")
 PTYSession = require("../pty/PTYSession")
 
+###*
+@property {Connection} conn A websocket connection
+@property {String} key Unique id for this terminal
+@property {Object} program specify the program to spawn
+###
+
 TerminalUI = React.createClass({
   getInitialState: ->
     return {
@@ -28,7 +34,7 @@ TerminalUI = React.createClass({
   # Spawns a session using the current pty size
   # @return {null}
   connectPTY: (term,ptySize) ->
-    pipe = new PTYPipe(@props.conn,@props.key)
+    pipe = new PTYPipe(@props.conn,@props.key,@props.program)
     ptySession = new PTYSession(pipe,term,ptySize)
     @setState session: ptySession
     return ptySession

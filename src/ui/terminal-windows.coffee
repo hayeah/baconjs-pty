@@ -66,14 +66,15 @@ TerminalWindowsUI = React.createClass({
   getRxState: ->
     {isConnected: @props.conn.status}
 
-
-  open: (title) ->
+  # @param {PTYServer.Program} program
+  open: (title,program) ->
     {IDCounter,terms} = @state
     IDCounter += 1
 
     term = {
       title: title
       id: "pty-#{IDCounter}"
+      program: program
     }
     @setState {
       terms: terms.concat([term])
@@ -81,15 +82,18 @@ TerminalWindowsUI = React.createClass({
     }
 
   render: ->
-    tabs = for {id,title} in @state.terms
-      Tab({key: id, title: title}, TerminalUI(key: id, conn: @props.conn, size: @state.contentSize))
+    tabs = for {id,title,program} in @state.terms
+      Tab({key: id, title: title}, TerminalUI(key: id, conn: @props.conn, size: @state.contentSize,program: program))
 
     navtabs = NavTabs(null,tabs)
 
     div({},
       # div({},"connection status: #{@state.isConnected}")
       navtabs,
-      button({className: "btn btn-default", onClick: @open.bind(@,"bash")},"New"))
+      button({className: "btn btn-default", onClick: @open.bind(@,"bash",{command: "bash"})},"bash")
+      button({className: "btn btn-default", onClick: @open.bind(@,"irb",{command: "irb"})},"irb")
+      button({className: "btn btn-default", onClick: @open.bind(@,"python",{command: "python"})},"python")
+    )
 })
 
 module.exports = TerminalWindowsUI

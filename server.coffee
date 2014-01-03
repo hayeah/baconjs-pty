@@ -7,14 +7,19 @@ app.use(express.static(process.cwd()))
 
 PTY = require('pty.js')
 
+# @typedef {{command: String}} PTYServer.Program
+# @typedef {{cols: Integer, rows: Integer}} PTYServer.Size
+
 class PTYInstance
-  # @param {{cols: Integer, rows: Integer}} size
-  constructor: (@so,@id,@size,@options) ->
+  # @param {PTYServer.Size} size
+  # @param {PTYServer.Program} program
+  constructor: (@so,@id,@size,@program) ->
     @spawn()
 
   spawn: ->
     console.log "spawn", @size, @options
-    @pty = pty = PTY.spawn("bash",[],{
+    command = @program.command || "bash"
+    @pty = pty = PTY.spawn(command,[],{
       name: 'xterm-color'
       cols: @size.cols
       rows: @size.rows
@@ -57,12 +62,12 @@ class PTYInstance
 class PTYServer
   constructor: (@so) ->
     @ptys = {}
-    @so.on "spawn", (id,size,options,ack) =>
+    @so.on "spawn", (id,size,program,ack) =>
       if oldPty = @ptys[id]
         console.log "close", id
         oldPty.close()
       console.log "spawn", id
-      @ptys[id] = new PTYInstance(@so,id,size,options)
+      @ptys[id] = new PTYInstance(@so,id,size,program)
       ack(size)
 
 class PingServer
