@@ -8,14 +8,15 @@ app.use(express.static(process.cwd()))
 PTY = require('pty.js')
 
 class PTYInstance
-  constructor: (@id,@so) ->
+  constructor: (@so,@id,@size,@options) ->
     @spawn()
 
   spawn: ->
+    console.log "spawn", @size, @options
     @pty = pty = PTY.spawn("bash",[],{
       name: 'xterm-color'
-      cols: 80
-      rows: 30
+      cols: @size.cols
+      rows: @size.rows
       cwd: process.cwd()
       env: process.env
     })
@@ -26,8 +27,23 @@ class PTYInstance
     pty.on "exit", =>
       @ctrlWrite("exit")
 
-    @so.on @id, (data) ->
-      pty.write(data)
+    @so.on @id, (data,ack) =>
+      if typeof data == "string"
+        pty.write(data)
+      else
+        @handleCtrl(data,ack)
+
+  handleCtrl: (data,ack) ->
+    [type,args...] = data
+    switch type
+      when "resize"
+        [size] = args
+        @resize(size)
+        ack(size)
+
+  resize: (size) ->
+    {cols,rows} = size
+    @pty.resize cols, rows
 
   write: (data) ->
     @so.emit(@id, data)
@@ -40,12 +56,12 @@ class PTYInstance
 class PTYServer
   constructor: (@so) ->
     @ptys = {}
-    @so.on "spawn", (id,ack) =>
+    @so.on "spawn", (id,size,options,ack) =>
       if oldPty = @ptys[id]
         console.log "close", id
         oldPty.close()
       console.log "spawn", id
-      @ptys[id] = new PTYInstance(id,@so)
+      @ptys[id] = new PTYInstance(@so,id,size,options)
       ack(id)
 
 class PingServer

@@ -45,7 +45,7 @@ Tabs = React.createClass({
 
     div(null,
       ul({className: "nav nav-tabs"},navtabs)
-      div({className: "tab-content"},@props.children))
+      div({ref: "content", className: "tab-content"},@props.children))
 })
 
 Tabs.Tab = Tab

@@ -7,28 +7,79 @@ PTYSession = require("../pty/PTYSession")
 
 TerminalUI = React.createClass({
   getInitialState: ->
-    term = new Terminal({
-      useStyle: true
-      cols: 80
-      rows: 30
-    })
     return {
-      term: term
-      pipe: null
+      session: null
+
+      # @type {Terminal} Terminal emulator
+      term: null
+
+      # @type {Bacon.Property.<{cols: Integer, rows:Integer}>} Current PTY dimensions
+      ptySize: null
     }
 
   # getDefaultProps: ->
   # componentWillMount: ->
 
   componentDidMount: (rootNode) ->
-    el = @refs.pty.getDOMNode()
-    t = @state.term
-    t.open(el)
+    @openPTY()
+    @setPTYSize()
+    # @observePTYSize()
+    @connectPTY()
 
-    pipe = new PTYPipe(@props.conn,@props.key)
-    ptySession = new PTYSession(pipe,@state.term)
+  # Spawns a session using the current pty size
+  # @return {null}
+  connectPTY: ->
+    # Propogation of pty size: ui ptysize -> pipe ptysize -> term ptysize
+    # + window resize causes component ptysize to change
+    # + component ptysize causes pipe ptysize to change, which causes remote ptysize to change
+    # + pipe ptysize change causes terminal emulator to resize
+    term = @state.term
+    # @state.ptySize.take(1).onValue ({cols,rows}) =>
+    pipe = new PTYPipe(@props.conn,@props.key,@state.ptySize)
+    resize = (size) ->
+      {cols,rows} = size
+      term.resize(cols,rows)
 
+    @state.ptySize.take(1).onValue (size) =>
+      # console.log "first set size", size
+      resize size
+
+    pipe.rx.PTYSize.changes().onValue (size) =>
+      # console.log "remote pty-resize", size
+      resize size
+
+
+    ptySession = new PTYSession(pipe,term)
     @setState session: ptySession
+    return
+
+  # Renders the terminal into DOM.
+  openPTY: ->
+    el = @refs.pty.getDOMNode()
+    term = new Terminal({
+      useStyle: true
+      # cols: @state.cols
+      # rows: @state.rows
+      cursorBlink: false
+    })
+    term.open(el)
+    @setState term: term
+    return
+
+  setPTYSize: ->
+    el = @refs.pty.getDOMNode()
+    cursor = $(el).find(".terminal-cursor")
+    cursorSize = [cursor.width(),cursor.height()]
+    calculatePTYSize = (contentSize) ->
+      w = contentSize.width
+      h = contentSize.height
+      {
+        cols: Math.floor(w / cursorSize[0])
+        rows: Math.floor(h / cursorSize[1])
+      }
+
+    ptySize = @props.size.map(calculatePTYSize).skipDuplicates((a,b) => a.cols == b.cols && a.rows == b.rows)
+    @setState ptySize: ptySize
 
   # componentWillReceiveProps: (nextProps) ->
   # shouldComponentUpdate: (nextProps,nextState) ->
@@ -40,8 +91,6 @@ TerminalUI = React.createClass({
     t.destroy()
 
   render: ->
-    div(null,
-      div({ref: "pty"})
-    )
+    div({ref: "pty"})
 })
 module.exports = TerminalUI

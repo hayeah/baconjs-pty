@@ -2,9 +2,18 @@
   <head>
     <link rel="stylesheet" type="text/css" href="/bower_components/bootstrap/dist/css/bootstrap.css">
     <style type="text/css">
+          html, body {
+            height: 100%;
+          }
+
+          #terminals {
+            height: 50%;
+          }
+
           #terminals > div {
             margin-top: 15px;
           }
+
           #terminals > div:after {
             content: " ";
             visibility: hidden;
@@ -15,9 +24,7 @@
     </style>
   </head>
   <body>
-    <p> is connected? <span id="status"></span> </p>
     <div id="terminals">
-
     </div>
     <script type="text/javascript" src="/build/vendor.js"></script>
     <script type="text/javascript" src="/build/app.js"></script>

@@ -17,6 +17,8 @@ TerminalUI = require("./terminal")
 
 RxStateMixin = require("./RxStateMixin")
 
+NAVBAR_HEIGHT = 42
+
 TerminalWindowsUI = React.createClass({
   mixins: [RxStateMixin]
 
@@ -29,11 +31,30 @@ TerminalWindowsUI = React.createClass({
       IDCounter: 0
 
       isConnected: false
+
+      ## reactive streams
+      # size of content area in pixels
+      contentSize: null
     }
   # getDefaultProps: ->
+
   # componentWillMount: ->
 
-  # componentDidMount: (rootNode) ->
+
+  componentDidMount: (rootNode) ->
+    console.log "root", rootNode
+    wrapper = $(rootNode).parent()
+    # get the size of content area
+    getContentSize = -> {
+      height: wrapper.height() - NAVBAR_HEIGHT
+      width: wrapper.width()
+    }
+
+    contentSize = Bacon.fromEventTarget(window,"resize").throttle(300).map(getContentSize).toProperty(getContentSize())
+
+    # @setRxState contentSize: contentSize
+    @setState contentSize: contentSize
+
   # componentWillReceiveProps: (nextProps) ->
   # shouldComponentUpdate: (nextProps,nextState) ->
   # componentWillUpdate: (nextProps,nextState) ->
@@ -61,12 +82,12 @@ TerminalWindowsUI = React.createClass({
 
   render: ->
     tabs = for {id,title} in @state.terms
-      Tab({key: id, title: title}, TerminalUI(key: id, conn: @props.conn))
+      Tab({key: id, title: title}, TerminalUI(key: id, conn: @props.conn, size: @state.contentSize))
 
     navtabs = NavTabs(null,tabs)
 
     div({},
-      div({},"connection status: #{@state.isConnected}")
+      # div({},"connection status: #{@state.isConnected}")
       navtabs,
       button({className: "btn btn-default", onClick: @open.bind(@,"bash")},"New"))
 })

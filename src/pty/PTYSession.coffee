@@ -23,6 +23,10 @@ class PTYSession
     @terminal.on "data", (data) =>
       @pipe.write(data)
 
+  resize: (cols,rows) ->
+    @terminal.resize cols, rows
+
+
   # TODO throttle spawn.
   spawn: ->
     @pipe.spawn()
@@ -31,12 +35,5 @@ class PTYSession
     @terminal.write("\r\nProgram exited. Restarting\r\n")
     @spawn()
 
-  # i guess this is an abstraction leak here. It would be better if PTYSession
-  # doesn't know about "exit" message. Session should just observe the "isConnected" property.
-  handleCtrl: (data) ->
-    [type,args...] = data
-    switch type
-      when "exit"
-        @respawn()
 
 module.exports = PTYSession
