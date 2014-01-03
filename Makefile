@@ -1,17 +1,21 @@
-.PHONY: watch js repl
+.PHONY: watch js repl build rebuild clean build_dir
 
 js_src=src
 js_out=build
+
+build: build_dir js
+
+rebuild: clean build
+
+build_dir:
+	mkdir -p $(js_out)
 
 watch:
 	watchy -w $(js_src) -- make js
 
 browserify := browserify --debug -t coffeeify --extension='.coffee' --no-detect-globals
 
-js: $(js_out) $(addprefix $(js_out)/,vendor.js app.js)
-
-$(js_out):
-	mkdir -p $(js_out)
+js: $(addprefix $(js_out)/,vendor.js app.js)
 
 $(js_out)/app.js: $(js_src)/app.coffee $(shell find $(js_src) -type f -name '*.coffee')
 	echo $^
@@ -23,3 +27,6 @@ $(js_out)/vendor.js: $(js_src)/vendor.txt
 
 server:
 	watchy -w server.coffee -- coffee server.coffee
+
+clean:
+	rm -r $(js_out)
