@@ -1,3 +1,5 @@
+# Handles communication with remote pty.
+#
 # We'll assume that socket.io is reliable. So we are not going to worry about
 # heartbeat, and that there won't be message losses. If the underlying socket
 # disconnects, the server-side blows away all ptys, and the client side should
@@ -6,20 +8,11 @@
 # TODO: If the underlying connection goes away, we should respawn pipe on connect.
 RxObject = require("../RxObject")
 
-# @type {{rols: Integer, cols: Integer}} PTYSize The dimension of a pty
-
-# @property {Bacon.Property.<PTYSize>} uiPTYSize The maximum allowable size for this pty. If it changes, should request remote pty to resize.
-# @property {Bacon.Property.<PTYSize>} rx.PTYSize  The current pipe size. It is the reactive property of remote pty size.
-
 class PTYPipe extends RxObject
-  # @param {{size:}} options Options to spawn remote terminal.
-  # @param {Bacon.Property.<PTYSize>} uiPTYSize
-  constructor: (@conn,@id,@uiPTYSize,@options) ->
+  constructor: (@conn,@id) ->
     @setRx {
       # is the pty program running?
       isRunning: false
-
-      PTYSize: null
     }
     # all messages passed into this channel
     @rawReader = conn.listen(@id) # .doAction ((data) -> console.log(data))
@@ -32,9 +25,6 @@ class PTYPipe extends RxObject
 
     @ctrlReader.onValue (data) => @handleCtrl(data)
 
-    # handles ui resize
-    @uiPTYSize.changes().onValue @resize.bind(@)
-
   handleCtrl: (data) =>
     [type,rest...] = data
     switch type
@@ -42,16 +32,18 @@ class PTYPipe extends RxObject
         @setRx isRunning: false
 
   # Spawns a remote terminal
-  spawn: () ->
+  spawn: (size,cb) ->
     # use the current ui terminal size
-    @uiPTYSize.take(1).onValue (size) =>
-      @conn.send "spawn", @id, size, @options, =>
-        @setRx {isRunning: true, PTYSize: size}
+    # @uiPTYSize.take(1).onValue (size) =>
+    @conn.send "spawn", @id, size, @options, =>
+      @setRx isRunning: true
+      cb(size) if cb
 
-  resize: (size) ->
+  resize: (size,cb) ->
     @write ["resize",size], =>
       # downstream resize if remote call is success
-      @setRx PTYSize: size
+      cb(size) if cb
+      # @setRx PTYSize: size
 
   write: (args...) ->
     @conn.send(@id,args...)

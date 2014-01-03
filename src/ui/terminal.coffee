@@ -23,31 +23,13 @@ TerminalUI = React.createClass({
   componentDidMount: (rootNode) ->
     term = @openPTY()
     ptySize = @setPTYSize(term)
-    sesion = @connectPTY(term,ptySize)
+    session = @connectPTY(term,ptySize)
 
   # Spawns a session using the current pty size
   # @return {null}
   connectPTY: (term,ptySize) ->
-    # Propogation of pty size: ui ptysize -> pipe ptysize -> term ptysize
-    # + window resize causes component ptysize to change
-    # + component ptysize causes pipe ptysize to change, which causes remote ptysize to change
-    # + pipe ptysize change causes terminal emulator to resize
-    # @state.ptySize.take(1).onValue ({cols,rows}) =>
-    pipe = new PTYPipe(@props.conn,@props.key,ptySize)
-    resize = (size) ->
-      {cols,rows} = size
-      term.resize(cols,rows)
-
-    ptySize.take(1).onValue (size) =>
-      # console.log "first set size", size
-      resize size
-
-    pipe.rx.PTYSize.changes().onValue (size) =>
-      # console.log "remote pty-resize", size
-      resize size
-
-
-    ptySession = new PTYSession(pipe,term)
+    pipe = new PTYPipe(@props.conn,@props.key)
+    ptySession = new PTYSession(pipe,term,ptySize)
     @setState session: ptySession
     return ptySession
 

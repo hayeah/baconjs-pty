@@ -8,6 +8,7 @@ app.use(express.static(process.cwd()))
 PTY = require('pty.js')
 
 class PTYInstance
+  # @param {{cols: Integer, rows: Integer}} size
   constructor: (@so,@id,@size,@options) ->
     @spawn()
 
@@ -62,7 +63,7 @@ class PTYServer
         oldPty.close()
       console.log "spawn", id
       @ptys[id] = new PTYInstance(@so,id,size,options)
-      ack(id)
+      ack(size)
 
 class PingServer
   constructor: (@so) ->
