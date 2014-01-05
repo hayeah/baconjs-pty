@@ -11,16 +11,13 @@ Tab = React.createClass({
   # componentWillUpdate: (nextProps,nextState) ->
   # componentDidUpdate: (prevProps,prevState,rootNode) ->
   # componentWillUnmount: ->
+
   render: ->
-    activecx = cx({active: @props.active == true})
-    div({className: "tab-pane #{activecx}"},@props.children)
+    # Don't do anything. Just a wrapper component.
 })
 
 Tabs = React.createClass({
-  getInitialState: ->
-    {
-      selected: 0,
-    }
+  # getInitialState: ->
   # getDefaultProps: ->
   # componentWillMount: ->
   # componentDidMount: (rootNode) ->
@@ -30,22 +27,26 @@ Tabs = React.createClass({
   # componentDidUpdate: (prevProps,prevState,rootNode) ->
   # componentWillUnmount: ->
 
-  selectTab: (i) ->
-    @setState selected: i
+  onSelected: (i) ->
+    tab = @props.children[i]
+    tab.props.onSelected?(i)
 
   render: ->
+    tabPanes = []
     navtabs = for tab, i in @props.children
-      active = @state.selected == i
-      tab.props.active = active
+      isActive = tab.props.isSelected
+      activecx = cx({active: isActive == true})
+      key = i
 
       title = tab.props.title
-      key = i
-      licx = cx({active: active == true})
-      navtab = li({className: licx, key: i, onClick: @selectTab.bind(@,i)},a(null,title))
+      tabPanes.push tabPane = div({key: i, className: "tab-pane #{activecx}"},tab.props.children)
+      navtab = li({className: activecx, key: i, onClick: @onSelected.bind(@,i,tab)},a(null,title))
+
 
     div(null,
       ul({className: "nav nav-tabs"},navtabs)
-      div({ref: "content", className: "tab-content"},@props.children))
+      div({ref: "content", className: "tab-content"},tabPanes)
+    )
 })
 
 Tabs.Tab = Tab

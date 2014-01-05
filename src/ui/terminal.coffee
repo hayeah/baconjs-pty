@@ -21,6 +21,9 @@ TerminalUI = React.createClass({
 
       # @type {Bacon.Property.<{cols: Integer, rows:Integer}>} Current PTY dimensions
       ptySize: null
+
+      #
+      focus: false
     }
 
   # getDefaultProps: ->
@@ -73,7 +76,14 @@ TerminalUI = React.createClass({
   # componentWillReceiveProps: (nextProps) ->
   # shouldComponentUpdate: (nextProps,nextState) ->
   # componentWillUpdate: (nextProps,nextState) ->
-  # componentDidUpdate: (prevProps,prevState,rootNode) ->
+
+  componentDidUpdate: (prevProps,prevState,rootNode) ->
+    # focus and blurring when changing tabs
+    if prevProps.focus == false && @props.focus == true
+      @state.term.focus()
+
+    if prevProps.focus == true && @props.focus == false
+      @state.term.blur()
 
   componentWillUnmount: ->
     t = @state.term

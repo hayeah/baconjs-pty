@@ -32,9 +32,11 @@ TerminalWindowsUI = React.createClass({
 
       isConnected: false
 
-      ## reactive streams
-      # size of content area in pixels
+      # @type {Bacon.Property.<{height:Integer,width:Integer}>} size of content area in pixels
       contentSize: null
+
+      # @type {Integer} the index of selected terminal
+      selected: 0
     }
   # getDefaultProps: ->
 
@@ -42,7 +44,6 @@ TerminalWindowsUI = React.createClass({
 
 
   componentDidMount: (rootNode) ->
-    console.log "root", rootNode
     wrapper = $(rootNode).parent()
     # get the size of content area
     getContentSize = -> {
@@ -81,11 +82,23 @@ TerminalWindowsUI = React.createClass({
       IDCounter: IDCounter
     }
 
-  render: ->
-    tabs = for {id,title,program} in @state.terms
-      Tab({key: id, title: title}, TerminalUI(key: id, conn: @props.conn, size: @state.contentSize,program: program))
+  # @param {TerminalUI} terminalUI
+  onSelected: (i) ->
+    @setState selected: i
 
-    navtabs = NavTabs(null,tabs)
+  render: ->
+    tabs = for {id,title,program}, i in @state.terms
+      isSelected = i == @state.selected
+      tui = TerminalUI(key: id, conn: @props.conn, size: @state.contentSize, program: program, focus: isSelected)
+      Tab({
+            key: id,
+            title: title,
+            onSelected: @onSelected
+            isSelected: isSelected
+          }
+          tui)
+
+    navtabs = NavTabs({ref: "nav"},tabs)
 
     div({},
       # div({},"connection status: #{@state.isConnected}")
