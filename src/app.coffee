@@ -77,7 +77,7 @@ class Connection
 
 
 # TerminalUI = require './ui/terminal'
-TerminalWindowsUI = require './ui/terminal-windows'
+TerminalWindowsUI = require './ui/TerminalWindowsUI'
 
 openTerms = (c) ->
   rootNode = document.getElementById("terminals")

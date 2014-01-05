@@ -2,7 +2,7 @@
 cx = React.addons.classSet
 
 {Tab} = NavTabs = require("../bs/nav-tabs")
-TerminalUI = require("./terminal")
+TerminalUI = require("./TerminalUI")
 
 # new TerminalWindowsUI(tabs: [{title: "PTY 1", name: "pty1",}])
 ###
