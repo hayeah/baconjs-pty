@@ -50,30 +50,42 @@ buffer = (stream) ->
   (new BaconBuffer(stream)).downstream
 
 class Connection
-  constructor: () ->
+  # @param {SocketIO} so
+  constructor: (@so) ->
     @bus = new Bacon.Bus()
-    @inputStream = buffer(@bus) # waitable and resumable bus
+    @buffer = []
+    @isConnected = false
 
-    @so = Socket.connect()
+    @bus.onValue (args) =>
+      @sendRemote args
+
+    # @inputStream = buffer(@bus) # waitable and resumable bus
     connectEvents = Bacon.fromEventTarget(@so,"connect").map(true)
     disconnectEvents = Bacon.fromEventTarget(@so,"disconnect").map(false)
     @status = connectEvents.merge(disconnectEvents).toProperty().startWith(false)
+
     @status.onValue (up) =>
-      if up
-        @inputStream.resume()
-      else
-        @inputStream.pause()
+      @isConnected = up
 
-    # only emit message if buffer is in connected state
-    @inputStream.onValue (args) =>
-      @so.emit args...
-
-  # returns a bacon event stream
+  # Returns a bacon event stream
   listen: (event) ->
     Bacon.fromEventTarget(@so,event)
 
   send: (args...) ->
     @bus.push args
+
+  sendRemote: (args) ->
+    if !@isConnected
+      @buffer.push args
+      return
+
+    # drain buffer first
+    if @buffer.length > 0
+      for bufferedArgs in @buffer
+        @so.emit bufferedArgs...
+      @buffer.length = 0
+
+    @so.emit args...
 
 
 # TerminalUI = require './ui/terminal'
@@ -86,7 +98,8 @@ openTerms = (c) ->
   }), rootNode
 
 main = ->
-  c = new Connection()
+  so = Socket.connect()
+  c = new Connection(so)
 
   window.terms = terms = openTerms(c)
   terms.open("bash",{command: "bash"})
